@@ -15,8 +15,13 @@
         role="dialog"
         aria-modal="true"
       >
-        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-          <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" @click="$emit('cancel')"></div>
+        <div
+          class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"
+        >
+          <div
+            class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+            @click="$emit('cancel')"
+          ></div>
 
           <!-- Modal panel -->
           <transition
@@ -34,9 +39,21 @@
               <form @submit.prevent="handleSubmit">
                 <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                   <div class="sm:flex sm:items-start">
-                    <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-indigo-100 sm:mx-0 sm:h-10 sm:w-10">
-                      <svg class="h-6 w-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1721 9z" />
+                    <div
+                      class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-indigo-100 sm:mx-0 sm:h-10 sm:w-10"
+                    >
+                      <svg
+                        class="h-6 w-6 text-indigo-600"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1 17 21 9z"
+                        />
                       </svg>
                     </div>
                     <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
@@ -50,7 +67,10 @@
                           </label>
                         </div>
                         <div class="mb-4">
-                          <label for="license-count" class="block text-sm font-medium text-gray-700 mb-2">
+                          <label
+                            for="license-count"
+                            class="block text-sm font-medium text-gray-700 mb-2"
+                          >
                             Number of licenses to generate:
                           </label>
                           <input
@@ -107,12 +127,12 @@ import LoadingComponent from '@/components/LoadingComponent.vue'
 const props = defineProps({
   show: {
     type: Boolean,
-    default: false
+    default: false,
   },
   appName: {
     type: String,
-    required: true
-  }
+    required: true,
+  },
 })
 
 const emit = defineEmits(['confirm', 'cancel'])
@@ -122,15 +142,17 @@ const loading = ref(false)
 const errors = ref({})
 
 const isFormValid = computed(() => {
-  return licenseCount.value && 
-         licenseCount.value >= 1 && 
-         licenseCount.value <= 100 &&
-         Object.keys(errors.value).length === 0
+  return (
+    licenseCount.value &&
+    licenseCount.value >= 1 &&
+    licenseCount.value <= 100 &&
+    Object.keys(errors.value).length === 0
+  )
 })
 
 const validateForm = () => {
   errors.value = {}
-  
+
   if (!licenseCount.value) {
     errors.value.licenseCount = 'License count is required'
   } else if (licenseCount.value < 1) {
@@ -142,20 +164,23 @@ const validateForm = () => {
 
 const handleSubmit = () => {
   validateForm()
-  
+
   if (isFormValid.value) {
     emit('confirm', licenseCount.value)
   }
 }
 
 // Reset form when modal is closed
-watch(() => props.show, (newValue) => {
-  if (!newValue) {
-    licenseCount.value = 10
-    errors.value = {}
-    loading.value = false
-  }
-})
+watch(
+  () => props.show,
+  (newValue) => {
+    if (!newValue) {
+      licenseCount.value = 10
+      errors.value = {}
+      loading.value = false
+    }
+  },
+)
 
 // Validate on input change
 watch(licenseCount, validateForm)

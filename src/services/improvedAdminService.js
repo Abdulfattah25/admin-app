@@ -7,7 +7,7 @@ export class AdminService {
       .from('applications')
       .select('*')
       .eq('is_active', true)
-      .order('display_name')
+      .order('name')
 
     if (error) throw error
     return data || []
@@ -15,22 +15,54 @@ export class AdminService {
 
   // Users Management - using new table structure
   static async getUsersByApp(appName = null) {
-    let query = supabase.from('admin_app_users').select(`
+    try {
+      let query = supabase.from('admin_app_users').select(`
         *,
-        admin_licenses!admin_app_users_license_id_fkey(
+        admin_licenses(
           license_code,
           created_at
         )
       `)
 
-    if (appName) {
-      query = query.eq('app_name', appName)
+      if (appName) {
+        query = query.eq('app_name', appName)
+      }
+
+      const { data, error } = await query.order('created_at', { ascending: false })
+
+      if (error) throw error
+      return data || []
+    } catch (error) {
+      console.error('Error fetching users by app:', error)
+
+      // Fallback to admin_profiles if admin_app_users is empty or has issues
+      try {
+        const { data: profileData, error: profileError } = await supabase
+          .from('admin_profiles')
+          .select('*')
+          .order('created_at', { ascending: false })
+
+        if (profileError) throw profileError
+
+        // Transform admin_profiles data to match expected format
+        const transformedData = profileData.map((profile) => ({
+          id: profile.id,
+          user_id: profile.id,
+          app_name: appName || 'admin',
+          email: profile.email,
+          name: profile.name,
+          role: profile.role,
+          status: profile.is_active ? 'active' : 'inactive',
+          created_at: profile.created_at,
+          updated_at: profile.updated_at,
+        }))
+
+        return transformedData
+      } catch (fallbackError) {
+        console.error('Fallback query also failed:', fallbackError)
+        return []
+      }
     }
-
-    const { data, error } = await query.order('created_at', { ascending: false })
-
-    if (error) throw error
-    return data || []
   }
 
   static async getUserStats(appName = null) {

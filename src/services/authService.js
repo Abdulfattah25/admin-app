@@ -85,6 +85,31 @@ export class AuthService {
         throw new Error('Account is inactive. Please contact administrator.')
       }
 
+      // Auto-create admin_app_users entry for admin app
+      try {
+        const { error: appUserError } = await supabase.from('admin_app_users').upsert(
+          {
+            user_id: data.user.id,
+            app_name: 'admin',
+            email: userData.email,
+            name: userData.name,
+            role: userData.role,
+            status: userData.is_active ? 'active' : 'inactive',
+          },
+          {
+            onConflict: 'user_id,app_name',
+            ignoreDuplicates: false,
+          },
+        )
+
+        if (appUserError) {
+          console.warn('Failed to create/update admin_app_users entry:', appUserError)
+        }
+      } catch (appUserError) {
+        console.warn('Failed to create admin_app_users entry:', appUserError)
+        // Non-critical error, continue with login
+      }
+
       return { user: data.user, userData }
     } catch (error) {
       console.error('Login error:', error)

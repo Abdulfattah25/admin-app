@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { AdminService } from '@/services/adminService'
+import { AdminService } from '@/services/improvedAdminService'
 
 export const useAdminStore = defineStore('admin', {
   state: () => ({
@@ -9,14 +9,14 @@ export const useAdminStore = defineStore('admin', {
     licenses: [],
     stats: {
       users: { total: 0, active: 0, inactive: 0 },
-      licenses: { total: 0, used: 0, available: 0 }
+      licenses: { total: 0, used: 0, available: 0 },
     },
     loading: false,
-    error: null
+    error: null,
   }),
 
   getters: {
-    currentAppName: (state) => state.currentApp
+    currentAppName: (state) => state.currentApp,
   },
 
   actions: {
@@ -35,11 +35,7 @@ export const useAdminStore = defineStore('admin', {
 
     async selectApp(appName) {
       this.currentApp = appName
-      await Promise.all([
-        this.fetchUsers(),
-        this.fetchLicenses(),
-        this.fetchStats()
-      ])
+      await Promise.all([this.fetchUsers(), this.fetchLicenses(), this.fetchStats()])
     },
 
     async fetchUsers() {
@@ -66,12 +62,12 @@ export const useAdminStore = defineStore('admin', {
       try {
         const [userStats, licenseStats] = await Promise.all([
           AdminService.getUserStats(this.currentApp),
-          AdminService.getLicenseStats(this.currentApp)
+          AdminService.getLicenseStats(this.currentApp),
         ])
-        
+
         this.stats = {
           users: userStats,
-          licenses: licenseStats
+          licenses: licenseStats,
         }
       } catch (error) {
         this.error = error.message
@@ -81,6 +77,6 @@ export const useAdminStore = defineStore('admin', {
 
     clearError() {
       this.error = null
-    }
-  }
+    },
+  },
 })

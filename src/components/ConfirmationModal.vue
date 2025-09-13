@@ -15,8 +15,13 @@
         role="dialog"
         aria-modal="true"
       >
-        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-          <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" @click="$emit('cancel')"></div>
+        <div
+          class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"
+        >
+          <div
+            class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+            @click="$emit('cancel')"
+          ></div>
 
           <!-- Modal panel -->
           <transition
@@ -36,7 +41,7 @@
                   <div
                     :class="[
                       'mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full sm:mx-0 sm:h-10 sm:w-10',
-                      iconClasses
+                      iconClasses,
                     ]"
                   >
                     <component :is="iconComponent" class="h-6 w-6" />
@@ -58,7 +63,7 @@
                   type="button"
                   :class="[
                     'w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 text-base font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm',
-                    confirmButtonClasses
+                    confirmButtonClasses,
                   ]"
                   @click="$emit('confirm')"
                 >
@@ -86,25 +91,25 @@ import { computed } from 'vue'
 const props = defineProps({
   show: {
     type: Boolean,
-    default: false
+    default: false,
   },
   title: {
     type: String,
-    required: true
+    default: '',
   },
   message: {
     type: String,
-    required: true
+    default: '',
   },
   confirmText: {
     type: String,
-    default: 'Confirm'
+    default: 'Confirm',
   },
   confirmType: {
     type: String,
     default: 'primary',
-    validator: (value) => ['primary', 'success', 'warning', 'danger'].includes(value)
-  }
+    validator: (value) => ['primary', 'success', 'warning', 'danger'].includes(value),
+  },
 })
 
 defineEmits(['confirm', 'cancel'])
@@ -114,7 +119,7 @@ const iconComponent = computed(() => {
     primary: 'InformationCircleIcon',
     success: 'CheckCircleIcon',
     warning: 'ExclamationTriangleIcon',
-    danger: 'ExclamationTriangleIcon'
+    danger: 'ExclamationTriangleIcon',
   }
   return icons[props.confirmType]
 })
@@ -124,7 +129,7 @@ const iconClasses = computed(() => {
     primary: 'bg-blue-100',
     success: 'bg-green-100',
     warning: 'bg-yellow-100',
-    danger: 'bg-red-100'
+    danger: 'bg-red-100',
   }
   return classes[props.confirmType]
 })
@@ -134,7 +139,7 @@ const confirmButtonClasses = computed(() => {
     primary: 'bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500',
     success: 'bg-green-600 hover:bg-green-700 focus:ring-green-500',
     warning: 'bg-yellow-600 hover:bg-yellow-700 focus:ring-yellow-500',
-    danger: 'bg-red-600 hover:bg-red-700 focus:ring-red-500'
+    danger: 'bg-red-600 hover:bg-red-700 focus:ring-red-500',
   }
   return classes[props.confirmType]
 })
