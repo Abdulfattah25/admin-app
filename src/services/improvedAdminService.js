@@ -117,23 +117,53 @@ export class AdminService {
 
   // License Management - using new table structure
   static async getLicensesByApp(appName = null) {
-    let query = supabase.from('admin_licenses').select(`
-        *,
-        admin_app_users!admin_licenses_used_by_fkey(
-          id,
-          email,
-          name
-        )
-      `)
+    // 1) Fetch licenses without nested relation to avoid PGRST200
+    let query = supabase
+      .from('admin_licenses')
+      .select('id, license_code, app_name, is_used, used_at, used_by, created_at')
 
     if (appName) {
       query = query.eq('app_name', appName)
     }
 
-    const { data, error } = await query.order('created_at', { ascending: false })
-
+    const { data: licenses, error } = await query.order('created_at', { ascending: false })
     if (error) throw error
-    return data || []
+
+    const rows = licenses || []
+
+    // 2) Collect unique user_ids from used_by
+    const userIds = Array.from(new Set(rows.map((r) => r.used_by).filter(Boolean)))
+
+    let emailByUserId = {}
+    let nameByUserId = {}
+    if (userIds.length > 0) {
+      // 3) Lookup emails in admin_app_users by user_id
+      let userQuery = supabase
+        .from('admin_app_users')
+        .select('user_id, email, name')
+        .in('user_id', userIds)
+      if (appName) {
+        userQuery = userQuery.eq('app_name', appName)
+      }
+
+      const { data: appUsers, error: usersErr } = await userQuery
+      if (!usersErr && appUsers) {
+        for (const u of appUsers) {
+          emailByUserId[u.user_id] = u.email
+          nameByUserId[u.user_id] = u.name
+        }
+      } else if (usersErr) {
+        // Non-fatal; proceed without user emails
+        console.warn('admin_app_users lookup failed:', usersErr)
+      }
+    }
+
+    // 4) Attach used_by_email/name for UI consumption
+    return rows.map((r) => ({
+      ...r,
+      used_by_email: r.used_by ? (emailByUserId[r.used_by] ?? null) : null,
+      used_by_name: r.used_by ? (nameByUserId[r.used_by] ?? null) : null,
+    }))
   }
 
   static async getLicenseStats(appName = null) {
@@ -174,10 +204,13 @@ export class AdminService {
       })
     }
 
-    const { data, error } = await supabase.from('admin_licenses').insert(licenses).select()
+    // Avoid selecting after insert to prevent triggering read policies
+    const { error } = await supabase
+      .from('admin_licenses')
+      .insert(licenses, { returning: 'minimal' })
 
     if (error) throw error
-    return data
+    return { success: true, inserted: licenses.length }
   }
 
   static generateLicenseCode() {

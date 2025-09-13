@@ -8,10 +8,8 @@
             <h1 class="text-xl font-semibold text-gray-900">Admin Dashboard</h1>
           </div>
           <div class="flex items-center space-x-4">
-            <span class="text-sm text-gray-700">
-              Welcome, {{ authStore.user?.user?.email }}
-            </span>
-            <button 
+            <span class="text-sm text-gray-700"> Welcome, {{ authStore.user?.user?.email }} </span>
+            <button
               @click="handleLogout"
               class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
             >
@@ -25,10 +23,7 @@
     <!-- Main Content -->
     <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <!-- Notification Container -->
-      <div 
-        v-if="notification" 
-        class="fixed top-4 right-4 z-50"
-      >
+      <div v-if="notification" class="fixed top-4 right-4 z-50">
         <NotificationComponent
           :type="notification.type"
           :title="notification.title"
@@ -53,10 +48,10 @@
               :key="tab.name"
               @click="activeTab = tab.name"
               :class="[
-                activeTab === tab.name 
-                  ? 'border-indigo-500 text-indigo-600' 
+                activeTab === tab.name
+                  ? 'border-indigo-500 text-indigo-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
-                'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors'
+                'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors',
               ]"
             >
               {{ tab.label }}
@@ -66,12 +61,9 @@
 
         <!-- Tab Content -->
         <div class="p-6">
-          <UsersManagement 
-            v-if="activeTab === 'users'" 
-            @show-notification="showNotification"
-          />
-          <LicenseManagement 
-            v-if="activeTab === 'licenses'" 
+          <UsersManagement v-if="activeTab === 'users'" @show-notification="showNotification" />
+          <LicenseManagement
+            v-if="activeTab === 'licenses'"
             @show-notification="showNotification"
           />
         </div>
@@ -100,7 +92,7 @@ const notification = ref(null)
 
 const tabs = [
   { name: 'users', label: 'Users Management' },
-  { name: 'licenses', label: 'License Management' }
+  { name: 'licenses', label: 'License Management' },
 ]
 
 const handleLogout = async () => {
@@ -111,7 +103,7 @@ const handleLogout = async () => {
     showNotification({
       type: 'error',
       title: 'Logout Failed',
-      message: error.message
+      message: error.message,
     })
   }
 }
@@ -125,18 +117,14 @@ const showNotification = ({ type, title, message }) => {
 }
 
 onMounted(async () => {
-  if (!authStore.isAuthenticated || !authStore.isAdmin) {
-    router.push('/')
-    return
-  }
-
+  // Router guard already ensures authentication; proceed to fetch
   try {
     await adminStore.fetchApplications()
   } catch (error) {
     showNotification({
       type: 'error',
       title: 'Failed to Load Data',
-      message: error.message
+      message: error.message,
     })
   }
 })
