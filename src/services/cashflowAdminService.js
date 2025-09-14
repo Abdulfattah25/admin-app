@@ -1,7 +1,7 @@
 // ============================================================
-// CASHFLOW ADMIN SERVICE
-// Enhanced admin management service for Cashflow app integration
-// Compatible with multi-app admin system
+// DEPRECATED: CASHFLOW ADMIN SERVICE (Legacy)
+// This file is no longer used by the application and targets legacy/non-existent tables.
+// It is safe to delete. Kept temporarily for reference; no active imports reference this file.
 // ============================================================
 
 import { supabase } from '@/supabase'

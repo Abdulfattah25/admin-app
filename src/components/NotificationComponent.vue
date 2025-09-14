@@ -10,8 +10,8 @@
     <div
       v-if="visible"
       :class="[
-        'max-w-sm w-full bg-white shadow-lg rounded-lg pointer-events-auto ring-1 ring-black ring-opacity-5 overflow-hidden',
-        typeClasses
+        'max-w-2xl w-full sm:max-w-3xl md:max-w-4xl lg:max-w-5xl bg-white shadow-lg rounded-lg pointer-events-auto ring-1 ring-black ring-opacity-5 overflow-hidden',
+        typeClasses,
       ]"
     >
       <div class="p-4">
@@ -19,11 +19,11 @@
           <div class="flex-shrink-0">
             <component :is="iconComponent" :class="iconClasses" />
           </div>
-          <div class="ml-3 w-0 flex-1 pt-0.5">
-            <p class="text-sm font-medium text-gray-900">
+          <div class="ml-3 flex-1 min-w-0 pt-0.5">
+            <p class="text-sm font-medium text-gray-900 break-words">
               {{ title }}
             </p>
-            <p class="mt-1 text-sm text-gray-500">
+            <p class="mt-1 text-sm text-gray-500 whitespace-pre-wrap break-words">
               {{ message }}
             </p>
           </div>
@@ -31,10 +31,9 @@
             <button
               @click="close"
               class="bg-white rounded-md inline-flex text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              aria-label="Close notification"
             >
-              <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
-              </svg>
+              <i class="fa-solid fa-xmark text-lg"></i>
             </button>
           </div>
         </div>
@@ -45,29 +44,33 @@
 
 <script setup>
 import { computed, onMounted } from 'vue'
+import CheckCircleIcon from '@/components/icons/CheckCircleIcon.vue'
+import XCircleIcon from '@/components/icons/XCircleIcon.vue'
+import ExclamationTriangleIcon from '@/components/icons/ExclamationTriangleIcon.vue'
+import InformationCircleIcon from '@/components/icons/InformationCircleIcon.vue'
 
 const props = defineProps({
   type: {
     type: String,
     default: 'info',
-    validator: (value) => ['success', 'error', 'warning', 'info'].includes(value)
+    validator: (value) => ['success', 'error', 'warning', 'info'].includes(value),
   },
   title: {
     type: String,
-    required: true
+    required: true,
   },
   message: {
     type: String,
-    required: true
+    required: true,
   },
   duration: {
     type: Number,
-    default: 5000
+    default: 5000,
   },
   visible: {
     type: Boolean,
-    default: true
-  }
+    default: true,
+  },
 })
 
 const emit = defineEmits(['close'])
@@ -77,27 +80,27 @@ const typeClasses = computed(() => {
     success: 'border-l-4 border-green-400',
     error: 'border-l-4 border-red-400',
     warning: 'border-l-4 border-yellow-400',
-    info: 'border-l-4 border-blue-400'
+    info: 'border-l-4 border-blue-400',
   }
   return classes[props.type]
 })
 
 const iconComponent = computed(() => {
   const icons = {
-    success: 'CheckCircleIcon',
-    error: 'XCircleIcon',
-    warning: 'ExclamationTriangleIcon',
-    info: 'InformationCircleIcon'
+    success: CheckCircleIcon,
+    error: XCircleIcon,
+    warning: ExclamationTriangleIcon,
+    info: InformationCircleIcon,
   }
   return icons[props.type]
 })
 
 const iconClasses = computed(() => {
   const classes = {
-    success: 'h-5 w-5 text-green-400',
-    error: 'h-5 w-5 text-red-400',
-    warning: 'h-5 w-5 text-yellow-400',
-    info: 'h-5 w-5 text-blue-400'
+    success: 'text-green-400 text-xl',
+    error: 'text-red-400 text-xl',
+    warning: 'text-yellow-400 text-xl',
+    info: 'text-blue-400 text-xl',
   }
   return classes[props.type]
 })

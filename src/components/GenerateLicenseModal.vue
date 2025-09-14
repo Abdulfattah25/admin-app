@@ -42,19 +42,7 @@
                     <div
                       class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-indigo-100 sm:mx-0 sm:h-10 sm:w-10"
                     >
-                      <svg
-                        class="h-6 w-6 text-indigo-600"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1 17 21 9z"
-                        />
-                      </svg>
+                      <i class="fa-solid fa-key text-indigo-600 text-lg"></i>
                     </div>
                     <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
                       <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">

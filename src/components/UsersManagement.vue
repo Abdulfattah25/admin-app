@@ -8,14 +8,7 @@
         </p>
       </div>
       <button @click="refreshUsers" :disabled="loading" class="btn-secondary">
-        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-          />
-        </svg>
+        <i class="fa-solid fa-rotate mr-2 text-sm"></i>
         Refresh
       </button>
     </div>
@@ -86,19 +79,7 @@
 
     <!-- Empty state -->
     <div v-else class="text-center py-12">
-      <svg
-        class="mx-auto h-12 w-12 text-gray-400"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-      >
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13.5 9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
-        />
-      </svg>
+      <i class="fa-solid fa-users mx-auto text-4xl text-gray-400"></i>
       <h3 class="mt-2 text-sm font-medium text-gray-900">No users</h3>
       <p class="mt-1 text-sm text-gray-500">No users found for this application.</p>
       <button
@@ -126,7 +107,6 @@
 import { ref, onMounted } from 'vue'
 import { useAdminStore } from '@/stores/admin'
 import { AdminService } from '@/services/improvedAdminService'
-import { supabase } from '@/supabase'
 import LoadingComponent from '@/components/LoadingComponent.vue'
 import ConfirmationModal from '@/components/ConfirmationModal.vue'
 
@@ -238,33 +218,16 @@ const cancelConfirmAction = () => {
 const checkAndCreateAdminUsers = async () => {
   loading.value = true
   try {
-    // Create admin app users from admin profiles
-    const { data: profiles } = await supabase
-      .from('admin_profiles')
-      .select('*')
-      .eq('is_active', true)
+    const appName = adminStore.currentApp || 'admin'
+    const result = await AdminService.createAdminUsersFromProfiles(appName)
 
-    if (profiles && profiles.length > 0) {
-      for (const profile of profiles) {
-        // Insert into admin_app_users if not exists
-        await supabase.from('admin_app_users').upsert({
-          user_id: profile.id,
-          app_name: adminStore.currentApp || 'admin',
-          email: profile.email,
-          name: profile.name,
-          role: profile.role,
-          status: profile.is_active ? 'active' : 'inactive',
-        })
-      }
+    emit('show-notification', {
+      type: 'success',
+      title: 'Users Created',
+      message: `Created or updated ${result.inserted} admin users for ${appName} app`,
+    })
 
-      emit('show-notification', {
-        type: 'success',
-        title: 'Users Created',
-        message: `Created ${profiles.length} admin users for ${adminStore.currentApp || 'admin'} app`,
-      })
-
-      await refreshUsers()
-    }
+    await refreshUsers()
   } catch (error) {
     console.error('Error creating admin users:', error)
     emit('show-notification', {

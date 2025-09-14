@@ -13,25 +13,11 @@
           :disabled="!adminStore.currentAppName || loading"
           class="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-            />
-          </svg>
+          <i class="fa-solid fa-plus mr-2 text-sm"></i>
           Generate Licenses
         </button>
         <button @click="refreshLicenses" :disabled="loading" class="btn-secondary">
-          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-            />
-          </svg>
+          <i class="fa-solid fa-rotate mr-2 text-sm"></i>
           Refresh
         </button>
       </div>
@@ -109,7 +95,7 @@
               </span>
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-              {{ license.users?.email || '-' }}
+              {{ license.used_by_email || '-' }}
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
               {{ license.used_at ? formatDate(license.used_at) : '-' }}
@@ -130,19 +116,7 @@
 
     <!-- Empty state -->
     <div v-else class="text-center py-12">
-      <svg
-        class="mx-auto h-12 w-12 text-gray-400"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-      >
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1 17 21 9z"
-        />
-      </svg>
+      <i class="fa-solid fa-key mx-auto text-4xl text-gray-400"></i>
       <h3 class="mt-2 text-sm font-medium text-gray-900">No licenses</h3>
       <p class="mt-1 text-sm text-gray-500">
         {{
@@ -169,7 +143,8 @@
 <script setup>
 import { ref } from 'vue'
 import { useAdminStore } from '@/stores/admin'
-import { AdminService } from '@/services/adminService'
+// Use the improved service that targets admin_core.sql tables
+import { AdminService } from '@/services/improvedAdminService'
 import LoadingComponent from '@/components/LoadingComponent.vue'
 import ConfirmationModal from '@/components/ConfirmationModal.vue'
 import GenerateLicenseModal from '@/components/GenerateLicenseModal.vue'
