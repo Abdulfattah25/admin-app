@@ -106,7 +106,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useAdminStore } from '@/stores/admin'
-import { AdminService } from '@/services/improvedAdminService'
+import { AdminService } from '@/services/adminService'
 import LoadingComponent from '@/components/LoadingComponent.vue'
 import ConfirmationModal from '@/components/ConfirmationModal.vue'
 

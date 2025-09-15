@@ -1,0 +1,21 @@
+<svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background with rounded corners for iOS -->
+  <rect width="180" height="180" rx="40" fill="#3B82F6"/>
+  
+  <!-- Dashboard grid -->
+  <rect x="25" y="35" width="35" height="25" rx="4" fill="white"/>
+  <rect x="72" y="35" width="35" height="25" rx="4" fill="white"/>
+  <rect x="120" y="35" width="35" height="25" rx="4" fill="white"/>
+  
+  <rect x="25" y="72" width="35" height="25" rx="4" fill="white"/>
+  <rect x="72" y="72" width="35" height="25" rx="4" fill="white"/>
+  <rect x="120" y="72" width="35" height="25" rx="4" fill="white"/>
+  
+  <rect x="25" y="109" width="35" height="25" rx="4" fill="white"/>
+  <rect x="72" y="109" width="35" height="25" rx="4" fill="white"/>
+  <rect x="120" y="109" width="35" height="25" rx="4" fill="white"/>
+  
+  <!-- User icon -->
+  <circle cx="90" cy="145" r="8" fill="white"/>
+  <path d="M74 165c0-8.8 7.2-16 16-16s16 7.2 16 16" stroke="white" stroke-width="4" fill="none"/>
+</svg>

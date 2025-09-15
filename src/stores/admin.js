@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { AdminService } from '@/services/improvedAdminService'
+import { AdminService } from '@/services/adminService'
 
 export const useAdminStore = defineStore('admin', {
   state: () => ({

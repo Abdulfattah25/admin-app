@@ -1,0 +1,18 @@
+<!-- Admin App Favicon -->
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="16" height="16" rx="2" fill="#3B82F6"/>
+  
+  <!-- Dashboard grid (simplified for 16x16) -->
+  <rect x="2" y="3" width="3" height="2" rx="0.5" fill="white"/>
+  <rect x="6" y="3" width="3" height="2" rx="0.5" fill="white"/>
+  <rect x="10" y="3" width="3" height="2" rx="0.5" fill="white"/>
+  
+  <rect x="2" y="6" width="3" height="2" rx="0.5" fill="white"/>
+  <rect x="6" y="6" width="3" height="2" rx="0.5" fill="white"/>
+  <rect x="10" y="6" width="3" height="2" rx="0.5" fill="white"/>
+  
+  <!-- User icon -->
+  <circle cx="8" cy="11" r="1" fill="white"/>
+  <path d="M6 14c0-1.1 0.9-2 2-2s2 0.9 2 2" stroke="white" stroke-width="0.8" fill="none"/>
+</svg>

@@ -1,6 +1,6 @@
 -- ============================================================
 -- ADMIN CORE SCHEMA (CLEAN & SPLIT)
--- Dependencies: Supabase (auth schema), Postgres 14+, Tailwind not relevant
+-- Dependencies: Supabase (auth schema), Postgres 14+
 -- This script is idempotent and safe to re-run
 -- ============================================================
 
@@ -111,7 +111,7 @@ $$;
 
 GRANT EXECUTE ON FUNCTION public.is_admin() TO PUBLIC;
 
--- Auto-create admin_profiles on auth.users insert (no side effects beyond admin_profiles)
+-- Auto-create admin_profiles on auth.users insert
 CREATE OR REPLACE FUNCTION public.handle_admin_new_user()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -126,70 +126,109 @@ BEGIN
 END;
 $$;
 
--- Ensure only one trigger exists for this purpose
 DROP TRIGGER IF EXISTS trg_admin_on_auth_user_created ON auth.users;
 CREATE TRIGGER trg_admin_on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_admin_new_user();
 
--- RPC: Consume license and enroll user into an app atomically
--- Usage: select public.consume_license('productivity', 'LICENSECODE123');
-CREATE OR REPLACE FUNCTION public.consume_license(p_app_name text, p_license_code text)
-RETURNS TEXT
+-- ============================================================
+-- LICENSE FUNCTIONS (Cross-app integration)
+-- ============================================================
+
+-- Verify license: lightweight check for apps
+CREATE OR REPLACE FUNCTION public.verify_license(p_app_name text, p_license_code text)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1 
+    FROM public.admin_licenses
+    WHERE app_name = p_app_name
+      AND license_code = p_license_code
+      AND is_used = false
+      AND (expires_at IS NULL OR expires_at > now())
+  );
+END;
+$$;
+
+-- Redeem license: atomic license consumption + user enrollment
+CREATE OR REPLACE FUNCTION public.redeem_license(p_app_name text, p_license_code text)
+RETURNS TABLE(id uuid, license_code text, app_name text, is_used boolean, used_by uuid, used_at timestamptz, expires_at timestamptz)
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public
 AS $$
 DECLARE
-  v_uid uuid := auth.uid();
-  v_email text := COALESCE((auth.jwt() ->> 'email'), NULL);
-  v_name text := COALESCE((auth.jwt() -> 'user_metadata' ->> 'full_name'), NULL);
-  v_license_id uuid;
+  v_license public.admin_licenses%ROWTYPE;
+  v_profile public.admin_profiles%ROWTYPE;
 BEGIN
-  IF v_uid IS NULL THEN
-    RAISE EXCEPTION 'UNAUTHENTICATED' USING ERRCODE = '28000';
-  END IF;
-
-  -- Validate license
-  SELECT id INTO v_license_id
+  -- Lock and validate license
+  SELECT * INTO v_license
   FROM public.admin_licenses
-  WHERE license_code = p_license_code
-    AND app_name = p_app_name
-    AND is_used = FALSE
-    AND (expires_at IS NULL OR expires_at > NOW())
+  WHERE app_name = p_app_name
+    AND license_code = p_license_code
   FOR UPDATE;
 
-  IF v_license_id IS NULL THEN
-    RAISE EXCEPTION 'INVALID_OR_USED_LICENSE' USING ERRCODE = '22023';
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'LICENSE_NOT_FOUND';
   END IF;
 
-  -- Mark license used
+  IF v_license.is_used THEN
+    RAISE EXCEPTION 'LICENSE_ALREADY_USED';
+  END IF;
+
+  IF v_license.expires_at IS NOT NULL AND v_license.expires_at < now() THEN
+    RAISE EXCEPTION 'LICENSE_EXPIRED';
+  END IF;
+
+  -- Mark license as used
   UPDATE public.admin_licenses
-  SET is_used = TRUE,
-      used_by = v_uid,
-      used_at = NOW()
-  WHERE id = v_license_id;
+  SET is_used = true,
+      used_by = auth.uid(),
+      used_at = now()
+  WHERE id = v_license.id;
 
-  -- Ensure admin_profiles row exists
-  INSERT INTO public.admin_profiles (id, email, name)
-  VALUES (v_uid, COALESCE(v_email, ''), v_name)
-  ON CONFLICT (id) DO UPDATE SET email = COALESCE(EXCLUDED.email, admin_profiles.email);
+  -- Get user profile
+  SELECT * INTO v_profile
+  FROM public.admin_profiles
+  WHERE id = auth.uid();
 
-  -- Enroll into app
-  INSERT INTO public.admin_app_users (user_id, app_name, email, name, role, status, license_id)
-  VALUES (v_uid, p_app_name, COALESCE(v_email, ''), v_name, 'user', 'active', v_license_id)
-  ON CONFLICT (user_id, app_name) DO UPDATE SET
-    email = COALESCE(EXCLUDED.email, public.admin_app_users.email),
-    name = COALESCE(EXCLUDED.name, public.admin_app_users.name),
+  -- Create or activate admin_app_users entry
+  INSERT INTO public.admin_app_users (user_id, app_name, email, name, role, status, license_id, created_at, updated_at)
+  VALUES (
+    auth.uid(),
+    p_app_name,
+    COALESCE(v_profile.email, ''),
+    COALESCE(v_profile.name, ''),
+    'user',
+    'active',
+    v_license.id,
+    now(),
+    now()
+  )
+  ON CONFLICT (user_id, app_name)
+  DO UPDATE SET 
     status = 'active',
-    license_id = COALESCE(EXCLUDED.license_id, public.admin_app_users.license_id),
-    updated_at = NOW();
+    license_id = COALESCE(EXCLUDED.license_id, admin_app_users.license_id),
+    updated_at = now();
 
-  RETURN 'OK';
+  -- Return updated license
+  RETURN QUERY
+  SELECT l.id, l.license_code, l.app_name, l.is_used, l.used_by, l.used_at, l.expires_at
+  FROM public.admin_licenses l
+  WHERE l.id = v_license.id;
 END;
 $$;
 
-GRANT EXECUTE ON FUNCTION public.consume_license(text, text) TO authenticated;
+-- Grant permissions
+REVOKE ALL ON FUNCTION public.verify_license(text, text) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.verify_license(text, text) TO authenticated;
+
+REVOKE ALL ON FUNCTION public.redeem_license(text, text) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.redeem_license(text, text) TO authenticated;
 
 -- ============================================================
 -- ROW LEVEL SECURITY (RLS)
@@ -227,10 +266,14 @@ DROP POLICY IF EXISTS "Admin licenses admin access" ON public.admin_licenses;
 CREATE POLICY "Admin licenses admin access" ON public.admin_licenses
   FOR ALL USING (public.is_admin()) WITH CHECK (public.is_admin());
 
--- App users: admin only (normal users enroll via RPC security definer)
+-- App users: admin manage all, users read their own records
 DROP POLICY IF EXISTS "Admin app users admin access" ON public.admin_app_users;
 CREATE POLICY "Admin app users admin access" ON public.admin_app_users
   FOR ALL USING (public.is_admin()) WITH CHECK (public.is_admin());
+
+DROP POLICY IF EXISTS "Admin app users self read" ON public.admin_app_users;
+CREATE POLICY "Admin app users self read" ON public.admin_app_users
+  FOR SELECT USING (user_id = auth.uid());
 
 -- ============================================================
 -- SEED DATA (idempotent)

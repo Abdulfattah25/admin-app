@@ -144,7 +144,7 @@
 import { ref } from 'vue'
 import { useAdminStore } from '@/stores/admin'
 // Use the improved service that targets admin_core.sql tables
-import { AdminService } from '@/services/improvedAdminService'
+import { AdminService } from '@/services/adminService'
 import LoadingComponent from '@/components/LoadingComponent.vue'
 import ConfirmationModal from '@/components/ConfirmationModal.vue'
 import GenerateLicenseModal from '@/components/GenerateLicenseModal.vue'
